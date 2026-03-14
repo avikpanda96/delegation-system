@@ -6,11 +6,12 @@ import { useNavigate } from "react-router-dom";
 
 export default function Delegations() {
   const { user, loading, logout } = useAuth();
-  const navigate = useNavigate(); // SPA redirect
+  const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [title, setTitle] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
+  // Load delegations
   const load = () => {
     if (!user) return;
     API.get("/delegations")
@@ -21,33 +22,22 @@ export default function Delegations() {
       });
   };
 
+  // Reload when user changes
   useEffect(() => {
     if (user) {
       load();
     } else {
-      setList([]); // Clear old data immediately on logout
+      setList([]); // Clear old data on logout
     }
   }, [user]);
 
-  // 🔹 FULL PAGE GUARD
-  if (loading) {
-    return (
-      <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
-        <Navbar />
-        <div style={styles.container}><h3>Authenticating...</h3></div>
-      </div>
-    );
-  }
+  // SPA logout handler
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
-  if (!user) {
-    return (
-      <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
-        <Navbar />
-        <div style={styles.container}><h3>Access Denied. Please Login.</h3></div>
-      </div>
-    );
-  }
-
+  // Create delegation
   const create = async () => {
     if (!title || !assignedTo) return alert("Enter title and User ID");
     try {
@@ -56,42 +46,79 @@ export default function Delegations() {
         description: "Assigned Task",
         assigned_to: assignedTo,
       });
-      setTitle(""); setAssignedTo("");
+      setTitle("");
+      setAssignedTo("");
       load();
     } catch (err) {
       alert("Error: " + (err.response?.data?.message || "Server Error"));
     }
   };
 
+  // Update delegation status
   const updateStatus = async (id, status) => {
     try {
       await API.put(`/delegations/${id}`, { status });
       load();
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
+  // Delete delegation
   const deleteDelegation = async (id) => {
     if (window.confirm("Delete this delegation?")) {
       try {
         await API.delete(`/delegations/${id}`);
         load();
-      } catch (err) { console.error(err); }
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
-  // 🔹 SPA logout button example (you can place it in Navbar)
-  const handleLogout = () => {
-    logout();        // clear auth state
-    navigate("/"); // redirect to login
-  };
+  // 🔹 Loading screen
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
+        <Navbar />
+        <div style={styles.container}>
+          <h3>Authenticating...</h3>
+        </div>
+      </div>
+    );
+  }
+
+  // 🔹 Access Denied only after loading
+  if (!loading && !user) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
+        <Navbar />
+        <div style={styles.container}>
+          <h3>Access Denied. Please Login.</h3>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
       <Navbar />
 
-      {/* 🔹 Example logout button */}
+      {/* Example logout button */}
       <div style={{ padding: "10px", textAlign: "right" }}>
-        <button onClick={handleLogout} style={{ padding: "5px 10px", background: "#f87171", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>Logout</button>
+        <button
+          onClick={handleLogout}
+          style={{
+            padding: "5px 10px",
+            background: "#f87171",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          Logout
+        </button>
       </div>
 
       <div style={styles.container}>
@@ -99,9 +126,22 @@ export default function Delegations() {
 
         {user.role === "admin" && (
           <div style={styles.createBox}>
-            <input style={styles.input} placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <input style={{ ...styles.input, width: "100px" }} placeholder="User ID" type="number" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} />
-            <button style={styles.button} onClick={create}>Create</button>
+            <input
+              style={styles.input}
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <input
+              style={{ ...styles.input, width: "100px" }}
+              placeholder="User ID"
+              type="number"
+              value={assignedTo}
+              onChange={(e) => setAssignedTo(e.target.value)}
+            />
+            <button style={styles.button} onClick={create}>
+              Create
+            </button>
           </div>
         )}
 
@@ -119,18 +159,32 @@ export default function Delegations() {
                 <td style={styles.td}>{d.title}</td>
                 <td style={styles.td}>{d.status}</td>
                 <td style={styles.td}>
-                  {(user.role === "admin" || (user.role === "user" && d.assigned_to === user.id)) && d.status !== "completed" && (
-                    <button style={styles.actionButton} onClick={() => updateStatus(d.id, "completed")}>Mark Done</button>
-                  )}
+                  {(user.role === "admin" ||
+                    (user.role === "user" && d.assigned_to === user.id)) &&
+                    d.status !== "completed" && (
+                      <button
+                        style={styles.actionButton}
+                        onClick={() => updateStatus(d.id, "completed")}
+                      >
+                        Mark Done
+                      </button>
+                    )}
                   {user.role === "superadmin" && (
-                    <button onClick={() => deleteDelegation(d.id)} style={styles.deleteBtn}>Delete</button>
+                    <button
+                      onClick={() => deleteDelegation(d.id)}
+                      style={styles.deleteBtn}
+                    >
+                      Delete
+                    </button>
                   )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {list.length === 0 && <p style={{ marginTop: "20px" }}>No delegations available.</p>}
+        {list.length === 0 && (
+          <p style={{ marginTop: "20px" }}>No delegations available.</p>
+        )}
       </div>
     </div>
   );
@@ -138,12 +192,47 @@ export default function Delegations() {
 
 const styles = {
   container: { padding: "20px", maxWidth: "1000px", margin: "0 auto" },
-  createBox: { display: "flex", gap: "10px", marginBottom: "20px", background: "#fff", padding: "15px", borderRadius: "8px" },
+  createBox: {
+    display: "flex",
+    gap: "10px",
+    marginBottom: "20px",
+    background: "#fff",
+    padding: "15px",
+    borderRadius: "8px",
+  },
   input: { flex: 1, padding: "8px", borderRadius: "5px", border: "1px solid #ccc" },
-  button: { padding: "8px 15px", borderRadius: "5px", border: "none", background: "#4f46e5", color: "#fff", cursor: "pointer" },
-  table: { width: "100%", borderCollapse: "collapse", background: "#fff", borderRadius: "8px", overflow: "hidden" },
+  button: {
+    padding: "8px 15px",
+    borderRadius: "5px",
+    border: "none",
+    background: "#4f46e5",
+    color: "#fff",
+    cursor: "pointer",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    background: "#fff",
+    borderRadius: "8px",
+    overflow: "hidden",
+  },
   th: { padding: "12px", textAlign: "left" },
   td: { padding: "12px" },
-  actionButton: { padding: "5px 10px", background: "#10b981", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer", marginRight: "5px" },
-  deleteBtn: { padding: "5px 10px", background: "#f87171", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }
+  actionButton: {
+    padding: "5px 10px",
+    background: "#10b981",
+    color: "#fff",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    marginRight: "5px",
+  },
+  deleteBtn: {
+    padding: "5px 10px",
+    background: "#f87171",
+    color: "#fff",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
 };
