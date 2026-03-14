@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function Delegations() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [title, setTitle] = useState("");
@@ -16,26 +16,18 @@ export default function Delegations() {
     if (!user) return;
     API.get("/delegations")
       .then((res) => setList(res.data))
-      .catch((err) => {
-        console.error(err);
-        setList([]);
-      });
+      .catch(() => setList([]));
   };
 
-  // Reload when user changes
+  // Reload on user change
   useEffect(() => {
     if (user) {
       load();
-    } else {
-      setList([]); // Clear old data on logout
+    } else if (!loading) {
+      setList([]);       // clear old data
+      navigate("/login"); // SPA redirect
     }
-  }, [user]);
-
-  // SPA logout handler
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  }, [user, loading, navigate]);
 
   // Create delegation
   const create = async () => {
@@ -54,14 +46,12 @@ export default function Delegations() {
     }
   };
 
-  // Update delegation status
+  // Update status
   const updateStatus = async (id, status) => {
     try {
       await API.put(`/delegations/${id}`, { status });
       load();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   // Delete delegation
@@ -70,13 +60,11 @@ export default function Delegations() {
       try {
         await API.delete(`/delegations/${id}`);
         load();
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) { console.error(err); }
     }
   };
 
-  // 🔹 Loading screen
+  // Loading screen
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
@@ -88,43 +76,14 @@ export default function Delegations() {
     );
   }
 
-  // 🔹 Access Denied only after loading
-  if (!loading && !user) {
-    return (
-      <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
-        <Navbar />
-        <div style={styles.container}>
-          <h3>Access Denied. Please Login.</h3>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
       <Navbar />
 
-      {/* Example logout button */}
-      <div style={{ padding: "10px", textAlign: "right" }}>
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: "5px 10px",
-            background: "#f87171",
-            color: "#fff",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Logout
-        </button>
-      </div>
-
       <div style={styles.container}>
         <h1>Delegations</h1>
 
-        {user.role === "admin" && (
+        {user?.role === "admin" && (
           <div style={styles.createBox}>
             <input
               style={styles.input}
@@ -182,6 +141,7 @@ export default function Delegations() {
             ))}
           </tbody>
         </table>
+
         {list.length === 0 && (
           <p style={{ marginTop: "20px" }}>No delegations available.</p>
         )}
