@@ -17,7 +17,7 @@ export default function Navbar() {
         <Link to="/dashboard" style={styles.link}>Dashboard</Link>
         <Link to="/delegations" style={styles.link}>Delegations</Link>
         <Link to="/reports" style={styles.link}>Reports</Link>
-        {user && user.role !== "user" && <Link to="/users" style={styles.link}>Users</Link>}
+        {user && user?.role !== "user" && <Link to="/users" style={styles.link}>Users</Link>}
         {user && (
           <button onClick={handleLogout} style={styles.logout}>Logout</button>
         )}
