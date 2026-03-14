@@ -7,6 +7,7 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch user from API if token exists
   const fetchUser = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -30,12 +31,14 @@ export default function AuthProvider({ children }) {
     fetchUser();
   }, []);
 
+  // Login function
   const login = async (credentials) => {
     setLoading(true);
     try {
       const res = await API.post("/auth/login", credentials);
       localStorage.setItem("token", res.data.token);
 
+      // Fetch user after login
       const userRes = await API.get("/auth/me");
       setUser(userRes.data.user);
     } finally {
@@ -43,7 +46,7 @@ export default function AuthProvider({ children }) {
     }
   };
 
-  // 🔹 FIX: Remove useNavigate. Just clear auth state here
+  // Logout function
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
