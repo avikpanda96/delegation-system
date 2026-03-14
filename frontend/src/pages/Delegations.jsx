@@ -82,7 +82,7 @@ export default function Delegations() {
   // 🔹 SPA logout button example (you can place it in Navbar)
   const handleLogout = () => {
     logout();        // clear auth state
-    navigate("/login"); // redirect to login
+    navigate("/"); // redirect to login
   };
 
   return (
