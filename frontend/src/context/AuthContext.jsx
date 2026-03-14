@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
 
 const AuthContext = createContext();
@@ -7,7 +6,6 @@ const AuthContext = createContext();
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   const fetchUser = async () => {
     const token = localStorage.getItem("token");
@@ -45,13 +43,11 @@ export default function AuthProvider({ children }) {
     }
   };
 
+  // 🔹 FIX: Remove useNavigate. Just clear auth state here
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
     setLoading(false);
-
-    // SPA redirect instead of full reload
-    navigate("/login"); 
   };
 
   return (
