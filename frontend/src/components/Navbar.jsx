@@ -7,7 +7,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();          // clear auth state
-    navigate("/login"); // redirect SPA
+    navigate("/"); // redirect SPA
   };
 
   return (
