@@ -23,12 +23,12 @@ export default function Delegations() {
   useEffect(() => {
     if (user) {
       load();
-    } else {
-      setList([]); // Clear data immediately on logout
+    } else if (!loading) {
+      setList([]); // Clear data if user logs out
     }
-  }, [user]);
+  }, [user, loading]);
 
-  // 🔹 FULL PAGE GUARD
+  // 🔹 FIX: Full page guard for Loading and Access Denied
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
