@@ -10,40 +10,39 @@ export default function Delegations() {
   const [assignedTo, setAssignedTo] = useState("");
 
   const load = () => {
+    if (!user) return;
     API.get("/delegations")
       .then((res) => setList(res.data))
       .catch((err) => {
-        console.error("Fetch error:", err);
+        console.error(err);
         setList([]);
       });
   };
 
-  // 🔹 REFRESH DATA logic: clears old data and loads new data
+  // 🔹 REFRESH: Trigger load when user state is ready
   useEffect(() => {
     if (user) {
       load();
-    } else {
-      setList([]); // Clear old data on logout
+    } else if (!loading) {
+      setList([]); // Clear data if user logs out
     }
-  }, [user]);
+  }, [user, loading]);
 
-  // 🔹 GUARD 1: If Auth is still working, show NOTHING or a Spinner
-  // This prevents the "Access Denied" flash
+  // 🔹 FIX: Full page guard for Loading and Access Denied
   if (loading) {
     return (
-      <div style={{ background: "#f3f4f6", minHeight: "100vh" }}>
+      <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
         <Navbar />
-        <div style={{ padding: "20px" }}>Loading your profile...</div>
+        <div style={styles.container}><h3>Authenticating...</h3></div>
       </div>
     );
   }
 
-  // 🔹 GUARD 2: Only if loading is FINISHED and user is still null
   if (!user) {
     return (
-      <div style={{ background: "#f3f4f6", minHeight: "100vh" }}>
+      <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
         <Navbar />
-        <div style={{ padding: "20px" }}>Access Denied. Please Login.</div>
+        <div style={styles.container}><h3>Access Denied. Please Login.</h3></div>
       </div>
     );
   }
@@ -53,14 +52,13 @@ export default function Delegations() {
     try {
       await API.post("/delegations", {
         title,
-        description: "Task assigned by admin",
+        description: "Assigned Task",
         assigned_to: assignedTo,
       });
-      setTitle("");
-      setAssignedTo("");
+      setTitle(""); setAssignedTo("");
       load();
     } catch (err) {
-      alert("Failed to create: " + err.response?.data?.message);
+      alert("Error: " + (err.response?.data?.message || "Server Error"));
     }
   };
 
@@ -72,7 +70,7 @@ export default function Delegations() {
   };
 
   const deleteDelegation = async (id) => {
-    if (window.confirm("Are you sure?")) {
+    if (window.confirm("Delete this delegation?")) {
       try {
         await API.delete(`/delegations/${id}`);
         load();
@@ -81,13 +79,12 @@ export default function Delegations() {
   };
 
   return (
-    <div style={{ background: "#f3f4f6", minHeight: "100vh" }}>
+    <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
       <Navbar />
       <div style={styles.container}>
         <h1>Delegations</h1>
 
-        {/* Admin Create Box */}
-        {user?.role === "admin" && (
+        {user.role === "admin" && (
           <div style={styles.createBox}>
             <input style={styles.input} placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
             <input style={{ ...styles.input, width: "100px" }} placeholder="User ID" type="number" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} />
@@ -97,7 +94,7 @@ export default function Delegations() {
 
         <table style={styles.table}>
           <thead>
-            <tr style={{background: "#eee"}}>
+            <tr style={{ background: "#eee" }}>
               <th style={styles.th}>Title</th>
               <th style={styles.th}>Status</th>
               <th style={styles.th}>Action</th>
@@ -105,14 +102,14 @@ export default function Delegations() {
           </thead>
           <tbody>
             {list.map((d) => (
-              <tr key={d.id} style={{borderBottom: "1px solid #ddd"}}>
+              <tr key={d.id} style={{ borderBottom: "1px solid #ddd" }}>
                 <td style={styles.td}>{d.title}</td>
                 <td style={styles.td}>{d.status}</td>
                 <td style={styles.td}>
-                  {(user?.role === "admin" || (user?.role === "user" && d.assigned_to === user?.id)) && d.status !== "completed" && (
+                  {(user.role === "admin" || (user.role === "user" && d.assigned_to === user.id)) && d.status !== "completed" && (
                     <button style={styles.actionButton} onClick={() => updateStatus(d.id, "completed")}>Mark Done</button>
                   )}
-                  {user?.role === "superadmin" && (
+                  {user.role === "superadmin" && (
                     <button onClick={() => deleteDelegation(d.id)} style={styles.deleteBtn}>Delete</button>
                   )}
                 </td>
@@ -120,7 +117,7 @@ export default function Delegations() {
             ))}
           </tbody>
         </table>
-        {list.length === 0 && <p style={{ marginTop: "20px" }}>No delegations found.</p>}
+        {list.length === 0 && <p style={{ marginTop: "20px" }}>No delegations available.</p>}
       </div>
     </div>
   );
@@ -135,5 +132,5 @@ const styles = {
   th: { padding: "12px", textAlign: "left" },
   td: { padding: "12px" },
   actionButton: { padding: "5px 10px", background: "#10b981", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer", marginRight: "5px" },
-  deleteBtn: { padding: "5px 10px", background: "#f87171", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" },
+  deleteBtn: { padding: "5px 10px", background: "#f87171", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }
 };
