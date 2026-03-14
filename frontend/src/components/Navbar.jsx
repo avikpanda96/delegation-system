@@ -2,9 +2,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
-  const { user } = useAuth();
+  // Pull both user and the context-aware logout function
+  const { user, logout } = useAuth();
   const nav = useNavigate();
-  const logout = () => { localStorage.removeItem("token"); nav("/"); };
+
+  const handleLogout = () => {
+    // 1. Clears localStorage and sets user to null in the Global State
+    logout(); 
+    // 2. Redirects the user to the login/landing page
+    nav("/"); 
+  };
 
   return (
     <nav style={styles.nav}>
@@ -13,14 +20,19 @@ export default function Navbar() {
         <Link to="/dashboard" style={styles.link}>Dashboard</Link>
         <Link to="/delegations" style={styles.link}>Delegations</Link>
         <Link to="/reports" style={styles.link}>Reports</Link>
-        {(user && user.role !== "user") && <Link to="/users" style={styles.link}>Users</Link>}
-        <button onClick={logout} style={styles.logout}>Logout</button>
+        
+        {/* Only show "Users" link if the user is an Admin or Superadmin */}
+        {(user && user.role !== "user") && (
+          <Link to="/users" style={styles.link}>Users</Link>
+        )}
+        
+        <button onClick={handleLogout} style={styles.logout}>
+          Logout
+        </button>
       </div>
     </nav>
   );
 }
-
-
 
 const styles = {
   nav: {
