@@ -7,7 +7,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();           // clears user and loading state
-    navigate("/login"); // SPA redirect
+    navigate("/"); // SPA redirect
   };
 
   return (
