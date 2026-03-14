@@ -23,6 +23,7 @@ exports.create = async (data) => {
     VALUES (?,?,?,?,?)`,
     [data.title, data.description, data.assigned_to, data.created_by, data.status]
   );
+  return { id: result.insertId, ...data }; 
 };
 
 exports.updateStatus = async (id, status) => {
