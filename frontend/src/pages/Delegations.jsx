@@ -117,7 +117,7 @@ export default function Delegations() {
         </table>
 
         {/* If no delegations */}
-        {list.length === 0 && (
+        {list?.length === 0 && (
           <p style={{marginTop:"20px"}}>No delegations available.</p>
         )}
 
