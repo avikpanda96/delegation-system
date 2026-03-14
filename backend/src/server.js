@@ -1,4 +1,5 @@
 const app = require("./app");
+const pool = require("./config/db");
 // Root route (to test Render URL)
 app.get("/", (req, res) => {
   res.send("Backend is live ✅");
