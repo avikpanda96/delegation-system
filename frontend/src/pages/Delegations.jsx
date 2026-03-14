@@ -95,7 +95,7 @@ export default function Delegations() {
                 <td>{d.status}</td>
                 <td>
                   {/* Mark Done button (Admins + Users for their own) */}
-                  {((user.role === "admin") || (user.role === "user" && d.assigned_to === user.id)) && d.status !== "completed" && 
+                  {((user?.role === "admin") || (user?.role === "user" && d.assigned_to === user?.id)) && d.status !== "completed" && 
                     <button style={styles.actionButton} 
                       onClick={()=>updateStatus(d.id,"completed")}>
                       Mark Done
@@ -103,7 +103,7 @@ export default function Delegations() {
                   }
 
                   {/* Delete button (Super Admin only) */}
-                  {user && user.role === "superadmin" && (
+                  {user && user?.role === "superadmin" && (
                     <button 
                       onClick={() => deleteDelegation(d.id)} 
                       style={styles.deleteBtn}>
