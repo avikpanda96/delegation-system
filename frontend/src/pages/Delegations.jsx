@@ -56,7 +56,7 @@ export default function Delegations() {
         <h1>Delegations</h1>
 
         {/* Create delegation box - only Admin can create */}
-        {user && user.role === "admin" && (
+        {user?.role === "admin" && (
           <div style={styles.createBox}>
             <input
               style={styles.input}
