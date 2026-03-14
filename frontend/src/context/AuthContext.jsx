@@ -8,18 +8,17 @@ export default function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const fetchUser = async () => {
-    const token = localStorage.getItem("token"); 
+    const token = localStorage.getItem("token");
     if (!token) {
       setUser(null);
       setLoading(false);
       return;
     }
     try {
-      setLoading(true); // Ensure loading is true while fetching
       const res = await API.get("/auth/me");
       setUser(res.data.user);
     } catch (err) {
-      console.error("Auth Fetch Error:", err);
+      console.error("Auth Error:", err);
       localStorage.removeItem("token");
       setUser(null);
     } finally {
@@ -32,13 +31,16 @@ export default function AuthProvider({ children }) {
   }, []);
 
   const login = async (credentials) => {
+    setLoading(true); // 🔹 Start loading immediately on login
     try {
       const res = await API.post("/auth/login", credentials);
       localStorage.setItem("token", res.data.token);
-      // We await fetchUser so user state is updated BEFORE navigation
-      await fetchUser(); 
-    } catch (err) {
-      throw err;
+      
+      // Fetch user data and WAIT for it to finish before moving
+      const userRes = await API.get("/auth/me");
+      setUser(userRes.data.user);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,7 +48,8 @@ export default function AuthProvider({ children }) {
     localStorage.removeItem("token");
     setUser(null);
     setLoading(false);
-    window.location.href = "/"; // Full refresh to clear all cache/state
+    // 🔹 HARD RESET: Clears all memory and old data from previous user
+    window.location.href = "/"; 
   };
 
   return (
