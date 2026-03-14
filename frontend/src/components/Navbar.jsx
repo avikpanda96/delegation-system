@@ -6,8 +6,8 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();          // clear user & token
-    navigate("/login"); // SPA redirect
+    logout();        // clear user & token
+    navigate("/");   // redirect to Login page ("/")
   };
 
   return (
@@ -24,7 +24,7 @@ export default function Navbar() {
           <button onClick={handleLogout} style={styles.logout}>
             Logout
           </button>
-       
+     
       </div>
     </nav>
   );
