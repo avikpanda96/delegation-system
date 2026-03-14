@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import API from "../api/axios";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Delegations() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
+  const navigate = useNavigate(); // SPA redirect
   const [list, setList] = useState([]);
   const [title, setTitle] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
@@ -19,16 +21,15 @@ export default function Delegations() {
       });
   };
 
-  // 🔹 REFRESH: Trigger load when user state is ready
   useEffect(() => {
     if (user) {
       load();
-    } else if (!loading) {
-      setList([]); // Clear data if user logs out
+    } else {
+      setList([]); // Clear old data immediately on logout
     }
-  }, [user, loading]);
+  }, [user]);
 
-  // 🔹 FIX: Full page guard for Loading and Access Denied
+  // 🔹 FULL PAGE GUARD
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
@@ -78,9 +79,21 @@ export default function Delegations() {
     }
   };
 
+  // 🔹 SPA logout button example (you can place it in Navbar)
+  const handleLogout = () => {
+    logout();        // clear auth state
+    navigate("/login"); // redirect to login
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: "#f3f4f6" }}>
       <Navbar />
+
+      {/* 🔹 Example logout button */}
+      <div style={{ padding: "10px", textAlign: "right" }}>
+        <button onClick={handleLogout} style={{ padding: "5px 10px", background: "#f87171", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>Logout</button>
+      </div>
+
       <div style={styles.container}>
         <h1>Delegations</h1>
 
