@@ -3,39 +3,40 @@ import API from "../api/axios";
 
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
+
+export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem("token");
+  const fetchUser = async () => {
+    const token = localStorage.getItem("token"); 
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+    try {
+      const res = await API.get("/auth/me", { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      setUser(res.data.user);
+    } catch (err) {
+      console.error("Auth Fetch Error:", err);
+      localStorage.removeItem("token");
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Fetch user on mount
   useEffect(() => {
-    const fetchUser = async () => {
-      if (!token) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-      try {
-        const res = await API.get("/auth/me", { headers: { Authorization: `Bearer ${token}` } });
-        setUser(res.data.user);
-      } catch (err) {
-        console.error(err);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchUser();
-  }, [token]);
+  }, []);
 
   const login = async (credentials) => {
     const res = await API.post("/auth/login", credentials);
     localStorage.setItem("token", res.data.token);
-    // fetch fresh user
-    const me = await API.get("/auth/me", { headers: { Authorization: `Bearer ${res.data.token}` } });
-    setUser(me.data.user);
+    await fetchUser(); // Reuse the fetch logic
   };
 
   const logout = () => {
@@ -44,7 +45,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, setUser }}>
       {children}
     </AuthContext.Provider>
   );
