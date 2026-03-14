@@ -9,8 +9,8 @@ export default function Delegations() {
   const [title, setTitle] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
-  // Load delegations
   const load = () => {
+    // If there is no user, don't even try to call the API
     if (!user) return; 
 
     API.get("/delegations")
@@ -21,12 +21,13 @@ export default function Delegations() {
       });
   };
 
-  // Automatically refresh data when user state changes (login/logout/switch)
+  // 🔹 THIS IS THE KEY FIX:
+  // We watch [user]. If you logout/login, user changes, and this fires immediately.
   useEffect(() => {
     if (user) {
       load();
     } else {
-      setList([]);
+      setList([]); // 🔹 Clear the list immediately so old data disappears
     }
   }, [user]);
 
@@ -43,39 +44,27 @@ export default function Delegations() {
       setAssignedTo("");
       load();
     } catch (err) {
-      console.error(err);
       alert("Failed to create: " + (err.response?.data?.message || "Server Error"));
     }
   };
 
-  // Update delegation status
   const updateStatus = async (id, status) => {
     try {
       await API.put(`/delegations/${id}`, { status });
       load();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
-  // Delete delegation (Super Admin only)
   const deleteDelegation = async (id) => {
-    if (window.confirm("Are you sure you want to delete this delegation?")) {
+    if (window.confirm("Are you sure?")) {
       try {
         await API.delete(`/delegations/${id}`);
         load();
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) { console.error(err); }
     }
   };
 
-  // --- RENDER LOGIC ---
-
-  // 1. Always show Navbar so the user can see they are logging in
-  // 2. While loading, show a loading spinner/text
-  // 3. Only show "Access Denied" if loading is DONE and user is still NULL
-  
+  // --- RENDER ---
   return (
     <div>
       <Navbar />
@@ -87,36 +76,16 @@ export default function Delegations() {
         ) : (
           <>
             <h1>Delegations</h1>
-
-            {/* Create delegation box - only Admin can create */}
             {user?.role === "admin" && (
               <div style={styles.createBox}>
-                <input
-                  style={styles.input}
-                  placeholder="Delegation Title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-                <input
-                  style={{ ...styles.input, width: "100px" }}
-                  placeholder="User ID"
-                  type="number"
-                  value={assignedTo}
-                  onChange={(e) => setAssignedTo(e.target.value)}
-                />
-                <button style={styles.button} onClick={create}>
-                  Create & Assign
-                </button>
+                <input style={styles.input} placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                <input style={{ ...styles.input, width: "100px" }} placeholder="User ID" type="number" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} />
+                <button style={styles.button} onClick={create}>Create</button>
               </div>
             )}
-
             <table style={styles.table}>
               <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
+                <tr><th>Title</th><th>Status</th><th>Action</th></tr>
               </thead>
               <tbody>
                 {list.map((d) => (
@@ -124,35 +93,18 @@ export default function Delegations() {
                     <td>{d.title}</td>
                     <td>{d.status}</td>
                     <td>
-                      {/* Mark Done button logic */}
-                      {(user?.role === "admin" || (user?.role === "user" && d.assigned_to === user?.id)) &&
-                        d.status !== "completed" && (
-                          <button
-                            style={styles.actionButton}
-                            onClick={() => updateStatus(d.id, "completed")}
-                          >
-                            Mark Done
-                          </button>
-                        )}
-
-                      {/* Delete button (Super Admin only) */}
+                      {(user?.role === "admin" || (user?.role === "user" && d.assigned_to === user?.id)) && d.status !== "completed" && (
+                          <button style={styles.actionButton} onClick={() => updateStatus(d.id, "completed")}>Mark Done</button>
+                      )}
                       {user?.role === "superadmin" && (
-                        <button
-                          onClick={() => deleteDelegation(d.id)}
-                          style={styles.deleteBtn}
-                        >
-                          Delete
-                        </button>
+                        <button onClick={() => deleteDelegation(d.id)} style={styles.deleteBtn}>Delete</button>
                       )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-
-            {list.length === 0 && (
-              <p style={{ marginTop: "20px" }}>No delegations available.</p>
-            )}
+            {list.length === 0 && <p style={{ marginTop: "20px" }}>No delegations available.</p>}
           </>
         )}
       </div>
@@ -164,30 +116,8 @@ const styles = {
   container: { padding: "20px" },
   createBox: { display: "flex", gap: "10px", marginBottom: "20px" },
   input: { flex: 1, padding: "8px", borderRadius: "5px", border: "1px solid #ccc" },
-  button: {
-    padding: "8px 15px",
-    borderRadius: "5px",
-    border: "none",
-    background: "#4f46e5",
-    color: "#fff",
-    cursor: "pointer",
-  },
+  button: { padding: "8px 15px", borderRadius: "5px", border: "none", background: "#4f46e5", color: "#fff", cursor: "pointer" },
   table: { width: "100%", borderCollapse: "collapse", boxShadow: "0 2px 5px rgba(0,0,0,0.1)" },
-  actionButton: {
-    padding: "5px 10px",
-    background: "#10b981",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    marginRight: "5px",
-  },
-  deleteBtn: {
-    padding: "5px 10px",
-    background: "#f87171",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-  },
+  actionButton: { padding: "5px 10px", background: "#10b981", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer", marginRight: "5px" },
+  deleteBtn: { padding: "5px 10px", background: "#f87171", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" },
 };
