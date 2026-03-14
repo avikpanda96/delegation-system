@@ -7,6 +7,7 @@ export default function Delegations() {
   const { user } = useAuth(); // get logged-in user
   const [list, setList] = useState([]);
   const [title, setTitle] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
 
   // Load delegations
   const load = () => {
@@ -18,18 +19,22 @@ export default function Delegations() {
   useEffect(() => { load(); }, []);
 
   // Create new delegation (Admin only)
-  const create = async () => {
-    if(!title) return alert("Enter title");
-    try {
-      await API.post("/delegations", {
-        title,
-        description: "No description",
-        assigned_to: 3, // adjust user ID for assignment
-      });
-      setTitle("");
-      load();
-    } catch(err) { console.error(err); }
-  };
+ const create = async () => {
+  if(!title || !assignedTo) return alert("Enter title and User ID");
+  try {
+    await API.post("/delegations", {
+      title,
+      description: "Task assigned by admin",
+      assigned_to: assignedTo, // Use the dynamic ID from input
+    });
+    setTitle("");
+    setAssignedTo(""); // Reset
+    load();
+  } catch(err) { 
+    console.error(err);
+    alert("Failed to create: " + err.response?.data?.message);
+  }
+};
 
   // Update delegation status
   const updateStatus = async (id, status) => {
@@ -56,17 +61,24 @@ export default function Delegations() {
         <h1>Delegations</h1>
 
         {/* Create delegation box - only Admin can create */}
-        {user?.role === "admin" && (
-          <div style={styles.createBox}>
-            <input
-              style={styles.input}
-              placeholder="Delegation Title"
-              value={title}
-              onChange={(e)=>setTitle(e.target.value)}
-            />
-            <button style={styles.button} onClick={create}>Create</button>
-          </div>
-        )}
+       {user?.role === "admin" && (
+  <div style={styles.createBox}>
+    <input
+      style={styles.input}
+      placeholder="Delegation Title"
+      value={title}
+      onChange={(e) => setTitle(e.target.value)}
+    />
+    <input
+      style={{ ...styles.input, width: "100px" }} // Small input for User ID
+      placeholder="User ID"
+      type="number"
+      value={assignedTo}
+      onChange={(e) => setAssignedTo(e.target.value)}
+    />
+    <button style={styles.button} onClick={create}>Create & Assign</button>
+  </div>
+)}
 
         <table style={styles.table}>
           <thead>
