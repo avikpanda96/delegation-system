@@ -2,12 +2,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
-  const { user, logout } = useAuth(); // use context logout
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();           // clears user and loading state
-    navigate("/"); // SPA redirect
+    logout();          // clear auth state
+    navigate("/login"); // redirect SPA
   };
 
   return (
@@ -17,7 +17,7 @@ export default function Navbar() {
         <Link to="/dashboard" style={styles.link}>Dashboard</Link>
         <Link to="/delegations" style={styles.link}>Delegations</Link>
         <Link to="/reports" style={styles.link}>Reports</Link>
-        {(user && user.role !== "user") && <Link to="/users" style={styles.link}>Users</Link>}
+        {user && user.role !== "user" && <Link to="/users" style={styles.link}>Users</Link>}
         {user && (
           <button onClick={handleLogout} style={styles.logout}>Logout</button>
         )}
