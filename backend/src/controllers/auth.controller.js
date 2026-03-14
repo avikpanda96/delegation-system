@@ -7,7 +7,8 @@ exports.register = async (req, res) => {
     res.json({ message: "registered" });
   } catch (e) {
     // FIX: Send the error message string instead of the raw error object
-    res.status(400).json({ error: e.message || "Registration failed" });
+     const errorMessage = e.message || e.error || "Registration failed";
+    res.status(400).json({ error: errorMessage || "Registration failed" });
   }
 };
 
