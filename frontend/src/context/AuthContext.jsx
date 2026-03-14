@@ -3,7 +3,6 @@ import API from "../api/axios";
 
 const AuthContext = createContext();
 
-
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,9 +15,8 @@ export default function AuthProvider({ children }) {
       return;
     }
     try {
-      const res = await API.get("/auth/me", { 
-        headers: { Authorization: `Bearer ${token}` } 
-      });
+      setLoading(true); // Ensure loading is true while fetching
+      const res = await API.get("/auth/me");
       setUser(res.data.user);
     } catch (err) {
       console.error("Auth Fetch Error:", err);
@@ -34,19 +32,25 @@ export default function AuthProvider({ children }) {
   }, []);
 
   const login = async (credentials) => {
-    const res = await API.post("/auth/login", credentials);
-    localStorage.setItem("token", res.data.token);
-    await fetchUser(); // Reuse the fetch logic
+    try {
+      const res = await API.post("/auth/login", credentials);
+      localStorage.setItem("token", res.data.token);
+      // We await fetchUser so user state is updated BEFORE navigation
+      await fetchUser(); 
+    } catch (err) {
+      throw err;
+    }
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
-    window.location.href = "/";
+    setLoading(false);
+    window.location.href = "/"; // Full refresh to clear all cache/state
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, setUser }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
