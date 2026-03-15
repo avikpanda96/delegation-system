@@ -121,11 +121,11 @@ const [usersLoaded, setUsersLoaded] = useState(false);
     {loadingUsers ? "Loading users..." : "Select user"}
   </option>
 
-  {users.map((u) => (
-    <option key={u.id} value={u.id}>
-      {u.id} | {u.name} | {u.email}
-    </option>
-  ))}
+{users.map((u) => (
+  <option key={u.id} value={u.id}>
+    {u.id} | {u.name} | {u.email} | {u.role}
+  </option>
+))}
 </select>
             <button style={styles.button} onClick={create}>
               Create & Assign
