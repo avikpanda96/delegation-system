@@ -1,4 +1,4 @@
-// backend/src/controllers/auth.controller.js
+
 const authService = require("../services/auth.service");
 
 exports.register = async (req, res) => {
@@ -6,7 +6,7 @@ exports.register = async (req, res) => {
     await authService.register(req.body);
     res.json({ message: "registered" });
   } catch (e) {
-    // FIX: Send the error message string instead of the raw error object
+   
      const errorMessage = e.message || e.error || "Registration failed";
     res.status(400).json({ error: errorMessage || "Registration failed" });
   }
@@ -15,10 +15,10 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const token = await authService.login(req.body);
-    // Logic remains: returning token as an object
+    //returning token as an object
     res.json({ token });
   } catch (e) {
-    // FIX: Send the error message so the frontend knows why login failed (e.g., "Invalid credentials")
+ 
     res.status(400).json({ error: e.message || "Login failed" });
   }
 };
