@@ -128,7 +128,7 @@ const [usersLoaded, setUsersLoaded] = useState(false);
   ))}
 </select>
             <button style={styles.button} onClick={create}>
-              Create
+              Create & Assign
             </button>
           </div>
         )}
