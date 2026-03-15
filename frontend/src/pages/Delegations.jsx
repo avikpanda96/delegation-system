@@ -3,6 +3,10 @@ import API from "../api/axios";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+//user lov
+const [users, setUsers] = useState([]);
+const [loadingUsers, setLoadingUsers] = useState(false);
+const [usersLoaded, setUsersLoaded] = useState(false);
 
 export default function Delegations() {
   const { user, loading } = useAuth();
@@ -28,6 +32,21 @@ export default function Delegations() {
       navigate("/login"); // SPA redirect
     }
   }, [user, loading, navigate]);
+
+  //user lov functinalty
+  const loadUsers = async () => {
+  if (usersLoaded) return;
+
+  setLoadingUsers(true);
+  try {
+    const res = await API.get("/users");
+    setUsers(res.data);
+    setUsersLoaded(true);
+  } catch (err) {
+    console.error(err);
+  }
+  setLoadingUsers(false);
+};
 
   // Create delegation
   const create = async () => {
@@ -91,13 +110,22 @@ export default function Delegations() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            <input
-              style={{ ...styles.input, width: "100px" }}
-              placeholder="User ID"
-              type="number"
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-            />
+           <select
+  style={{ ...styles.input, width: "250px" }}
+  value={assignedTo}
+  onChange={(e) => setAssignedTo(Number(e.target.value))}
+  onClick={loadUsers}
+>
+  <option value="">
+    {loadingUsers ? "Loading users..." : "Select user"}
+  </option>
+
+  {users.map((u) => (
+    <option key={u.id} value={u.id}>
+      {u.id} | {u.name} | {u.email}
+    </option>
+  ))}
+</select>
             <button style={styles.button} onClick={create}>
               Create
             </button>
