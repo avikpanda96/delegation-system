@@ -17,7 +17,7 @@ exports.getByUser = async (userId) => {
 };
 
 exports.create = async (data) => {
-  await db.query(
+  const [result] = await db.query(
     `INSERT INTO delegations
     (title, description, assigned_to, created_by, status)
     VALUES (?,?,?,?,?)`,
