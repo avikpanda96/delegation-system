@@ -3,10 +3,7 @@ import API from "../api/axios";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-//user lov
-const [users, setUsers] = useState([]);
-const [loadingUsers, setLoadingUsers] = useState(false);
-const [usersLoaded, setUsersLoaded] = useState(false);
+
 
 export default function Delegations() {
   const { user, loading } = useAuth();
@@ -14,6 +11,10 @@ export default function Delegations() {
   const [list, setList] = useState([]);
   const [title, setTitle] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
+  //user lov
+const [users, setUsers] = useState([]);
+const [loadingUsers, setLoadingUsers] = useState(false);
+const [usersLoaded, setUsersLoaded] = useState(false);
 
   // Load delegations
   const load = () => {
