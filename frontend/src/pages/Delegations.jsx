@@ -117,13 +117,15 @@ const [usersLoaded, setUsersLoaded] = useState(false);
   onChange={(e) => setAssignedTo(Number(e.target.value))}
   onClick={loadUsers}
 >
-              {/* header */}
-  <option value="" disabled>
-    ID | NAME | EMAIL | ROLE
-  </option>
+    
              
   <option value="" disabled>
     {loadingUsers ? "Loading users..." : "Select user"}
+  </option>
+
+                       {/* header */}
+  <option value="" disabled>
+    ID | NAME | EMAIL | ROLE
   </option>
 
 {users.map((u) => (
