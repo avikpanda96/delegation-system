@@ -8,9 +8,10 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const login = async () => {
-    
+     setLoading(true);
     try {
       const res = await API.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
@@ -18,6 +19,9 @@ export default function Login() {
     } catch (err) {
       alert("Login failed");
     }
+    finally {
+    setLoading(false);
+  }
   };
 
   return (
@@ -47,7 +51,11 @@ export default function Login() {
             {showPassword ? "🙈" : "👁️"}
           </button>
         </div>
-
+        {loading && (
+  <p style={{ color: "red", fontSize: "14px" }}>
+    Please wait... Login ⚠️ Server slow due to free hosting
+  </p>
+)}
         <button style={styles.button} onClick={login}>
           Login
         </button>
