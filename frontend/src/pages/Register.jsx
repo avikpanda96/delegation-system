@@ -9,8 +9,10 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const register = async () => {
+     setLoading(true);
     try {
       await API.post("/auth/register", { name, email, password });
       alert("Registered successfully!");
@@ -18,6 +20,9 @@ export default function Register() {
     } catch {
       alert("Registration failed");
     }
+    finally {
+    setLoading(false);
+  }
   };
 
   return (
@@ -53,7 +58,11 @@ export default function Register() {
             {showPassword ? "🙈" : "👁️"}
           </button>
         </div>
-
+       {loading && (
+  <p style={{ color: "red", fontSize: "14px" }}>
+    Please wait... Register ⚠️ Server slow due to free hosting
+  </p>
+)}
         <button style={styles.button} onClick={register}>
           Register
         </button>
